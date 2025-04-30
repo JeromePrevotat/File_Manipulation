@@ -1,13 +1,15 @@
+import com.humanbooster.file_manipulation.FileIO;
 import com.humanbooster.file_manipulation.FileManager;
 import java.io.File;
+import java.io.IOException;
 
 public class App {
     public static void main(String[] args) throws Exception {
         final String PWD = System.getProperty("user.dir");
         final String SEP = System.getProperty("file.separator");
-        System.out.println("PWD: " + PWD + SEP);
 
         File f = new File(PWD + SEP + "test");
+        // FILE MANAGER
         try {
             if (!f.exists())
                 f.mkdir();
@@ -17,9 +19,26 @@ public class App {
             testDeleteFile(f);
             testListFiles(f);
             testGetFileInfos(f);
-
         } catch (SecurityException e) {
             System.err.println(e.getMessage());
+        }
+
+        // FILE IO
+        try {
+            testFileAppend(f);
+            testReadTextFile(f);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+
+        cleanTests(f);
+    }
+
+    // FILE MANAGER
+    private static void cleanTests(File f){
+        for (File file : f.listFiles()){
+            if (!file.getName().equals("testfile(1)") && !file.getName().equals("testfile(2)"))
+                file.delete();
         }
     }
 
@@ -77,4 +96,26 @@ public class App {
         // FileManager.getFileInfo(f.getAbsolutePath() + "dirdoesntexists");
         FileManager.getFileInfo(f.getAbsolutePath() + SEP + "testfile(1)");
     }
+
+    // FILE IO
+
+    private static void testFileAppend(File f){
+        final String SEP = System.getProperty("file.separator");
+        try {            
+            FileIO.appendToFile(f.getAbsolutePath() + SEP + "testfile(1)", "Line 1\n");
+            FileIO.appendToFile(f.getAbsolutePath() + SEP + "testfile(1)", "Line 2\n");
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void testReadTextFile(File f){
+        final String SEP = System.getProperty("file.separator");
+        try {            
+            System.out.println(FileIO.readTextFile(f.getAbsolutePath() + SEP + "testfile(1)"));
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
 }

@@ -1,17 +1,16 @@
 package com.humanbooster.file_manipulation;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
 public class FileManager {
-    // - `createFile(String path)` : Crée un nouveau fichier
-    // - `deleteFile(String path)` : Supprime un fichier existant
-    // - `copyFile(String source, String destination)` : Copie un fichier vers une nouvelle destination
-    // - `moveFile(String source, String destination)` : Déplace un fichier vers une nouvelle destination
-    // - `listFiles(String directory)` : Liste tous les fichiers d’un répertoire
-    // - `getFileInfo(String path)` : Récupère les informations d’un fichier (taille, date de création, etc.)
+    // PART I
     public static boolean createFile(String path){
         // Error Handling
         if (path == null) throw new NullPointerException("Error: Argument <path> is null");
@@ -121,5 +120,91 @@ public class FileManager {
         System.out.println(b.toString());
     }
 
+    // PART II
+    public static boolean createDirectory(String path){
+        // Error Handling
+        if (path == null) throw new NullPointerException("Error: Argument <path> is null");
+        if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
+
+        File f = new File(path);
+        int i = 1;
+        String dirNb;
+
+        // Dir Duplicate
+        while (f.exists()){
+            dirNb = "(" + i +")";
+            f = new File(path + dirNb);
+            i++;
+        }
+        // File Creation
+        try {
+            f.mkdir();
+        } catch (SecurityException e) {
+            System.err.println(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean deleteDirectory(String path){
+        // Error Handling
+        if (path == null) throw new NullPointerException("Error: Argument <path> is null");
+        File f = new File(path);
+        if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
+        if (!f.isDirectory()) throw new IllegalArgumentException("Error: This is not a Directory");
+        if (!f.exists()) throw new IllegalArgumentException("Error: Directory doesn't exists");
+        // File deletion
+        try {
+            Path p = Path.of(path);
+            Files.delete(p);
+        } catch (NoSuchFileException | DirectoryNotEmptyException e){
+            System.out.println(e.getMessage());
+            return false;
+        } catch (IOException e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public static void listDirectories(String path){
+        final String SEP = System.getProperty("file.separator");
+        // Error Handling
+        if (path == null) throw new NullPointerException("Error: Argument <path> is null");
+        File f = new File(path);
+        if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
+        if (!f.isDirectory()) throw new IllegalArgumentException("Error: This is not a Directory");
+        if (!f.exists()) throw new IllegalArgumentException("Error: Directory doesn't exists");
+        for (File file : f.listFiles()){
+            if (file.isDirectory()){
+                listDirectories(f.getAbsolutePath() + SEP);
+            }
+        }
+        for (File file : f.listFiles()){
+            System.out.println(file.getAbsoluteFile());
+        }
+    }
+
+    public static int getDirectorySize(String path){
+        final String SEP = System.getProperty("file.separator");
+        int totalSize = 0;
+        // Error Handling
+        if (path == null) throw new NullPointerException("Error: Argument <path> is null");
+        File f = new File(path);
+        if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
+        if (!f.isDirectory()) throw new IllegalArgumentException("Error: This is not a Directory");
+        if (!f.exists()) throw new IllegalArgumentException("Error: Directory doesn't exists");
+        // Recursive call to increment totalSize from subfolder
+        for (File file : f.listFiles()){
+            if (file.isDirectory()){
+                totalSize += getDirectorySize(f.getAbsolutePath() + SEP);
+            }
+        }
+        // Increment totalSize for each file in the Current Directory
+        for (File file : f.listFiles()){
+            totalSize += file.getTotalSpace();
+        }
+        return totalSize;
+    }
 
 }
