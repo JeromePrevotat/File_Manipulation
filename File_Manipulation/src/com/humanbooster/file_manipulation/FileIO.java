@@ -9,15 +9,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-
-import org.xml.sax.ErrorHandler;
 
 public class FileIO {
     // - `writeTextFile(String path, String content)` : Écrit du contenu dans un fichier texte
     // - `writeBinaryFile(String path, byte[] data)` : Écrit des données binaires dans un fichier
     // 2. Implémenter des méthodes de traitement avancé :
-    // - `readFileByLines(String path)` : Lit un fichier ligne par ligne
     // - `writeFileByLines(String path, List<String> lines)` : Écrit un fichier ligne par ligne
     // - `readFileByChunks(String path, int chunkSize)` : Lit un fichier par morceaux
     // - `compressFile(String source, String destination)` : Compresse un fichier
@@ -64,7 +63,6 @@ public class FileIO {
         return true;
     }
 
-
     // CF ReadTextFile which do both
     public static Byte[] readBinaryFile(String path){
         Byte[] buffer;
@@ -80,7 +78,8 @@ public class FileIO {
     }
 
     // PART II
-    public static String readFileByLines(String path) throws AccessDeniedException, FileNotFoundException{
+    public static String[] readFileByLines(String path) throws AccessDeniedException, FileNotFoundException{
+        List<String> fileLines = new ArrayList<>();
         // Error Handling
         if (path == null) throw new NullPointerException("Error: Argument <path> is null");
         File f = new File(path);
@@ -91,9 +90,10 @@ public class FileIO {
             // GetNextLine
             while (fileReader.hasNextLine()){
                 String line = fileReader.nextLine();
-                
+                fileLines.add(line);   
             }
         }
+        return fileLines.stream().toArray(String[]::new);
     }
 
 
