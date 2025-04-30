@@ -1,6 +1,9 @@
 package com.humanbooster.file_manipulation;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class FileManager {
     // - `createFile(String path)` : Crée un nouveau fichier
@@ -10,12 +13,14 @@ public class FileManager {
     // - `listFiles(String directory)` : Liste tous les fichiers d’un répertoire
     // - `getFileInfo(String path)` : Récupère les informations d’un fichier (taille, date de création, etc.)
     public static boolean createFile(String path){
-        File f = new File(path);
-        int i = 1;
-        String fileNb;
         // Error Handling
         if (path == null) throw new NullPointerException("Error: Argument <path> is null");
         if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
+
+        File f = new File(path);
+        int i = 1;
+        String fileNb;
+
         // File Duplicate
         while (f.exists()){
             fileNb = "(" + i +")";
@@ -33,9 +38,9 @@ public class FileManager {
     }
 
     public static boolean deleteFile(String path){
-        File f = new File(path);
         // Error Handling
         if (path == null) throw new NullPointerException("Error: Argument <path> is null");
+        File f = new File(path);
         if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
         if (!f.exists()) throw new IllegalArgumentException("Error: File doesn't exists");
         // File deletion
@@ -59,24 +64,26 @@ public class FileManager {
     }
 
     public static boolean moveFile(String source, String destination){
-        try {
-            copyFile(source, destination);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-        return deleteFile(source);
+        // Error handling
+        if (source == null) throw new NullPointerException("Error: Argument <source> is null");
+        if (source.equals("")) throw new IllegalArgumentException("Error: Argument <source> is Empty");
+        File s = new File(source);
+        if (!s.exists()) throw new IllegalArgumentException("Error: Source File doesn't exists");
+        // Copy File
+        if (source.equals(destination)) return true;
+        if (copyFile(source, destination))
+            return deleteFile(source);
+        return false;
     }
 
     public static void listFiles(String directory){
-        File f = new File(directory);
-        File[] dirContent;
         // Error Handling
         if (directory == null) throw new NullPointerException("Error: Argument <directory> is null");
+        File f = new File(directory);
         if (directory.equals("")) throw new IllegalArgumentException("Error: Argument <directory> is Empty");
         if (!f.exists()) throw new IllegalArgumentException("Error: Directory doesn't exists");
-        try {
-            dirContent = f.listFiles();
-            for (File file : dirContent){
+        try {            
+            for (File file : f.listFiles()){
                 System.out.println(file.toString());
             }
         } catch (SecurityException e) {
@@ -86,17 +93,24 @@ public class FileManager {
     }
 
     public static void getFileInfo(String path){
-        File f = new File(path);
         String rights = "";
         // Error Handling
         if (path == null) throw new NullPointerException("Error: Argument <path> is null");
+        File f = new File(path);
         if (path.equals("")) throw new IllegalArgumentException("Error: Argument <path> is Empty");
         if (!f.exists()) throw new IllegalArgumentException("Error: File doesn't exists");
         // Get File Infos
         StringBuilder b = new StringBuilder();
         b.append(f.getName()).append("\n");
         b.append(f.getAbsolutePath()).append("\n");
-        b.append(f.lastModified()).append("\n");
+        // Get Unix Date in ms - Trying to convert to Date
+        Date unixDate = new Date(f.lastModified()*1000L);
+        SimpleDateFormat jdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+        jdf.setTimeZone(TimeZone.getTimeZone("GMT+1"));
+        String java_date = jdf.format(unixDate);
+        String date = java_date;
+        b.append(date).append("\n"); // long from UNIX time
+        // Used Space
         b.append(f.getUsableSpace()).append("\n");
         b.append(f.getTotalSpace()).append("\n");
         // File Rights
